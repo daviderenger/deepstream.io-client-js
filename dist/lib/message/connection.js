@@ -3,7 +3,7 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
-var NodeWebSocket = require('ws');
+var NodeWebSocket = require('uws');
 var messageParser = require('./message-parser');
 var messageBuilder = require('./message-builder');
 var utils = require('../utils/utils');
@@ -310,7 +310,11 @@ Connection.prototype._onError = function (error) {
     if (error.code === 'ECONNRESET' || error.code === 'ECONNREFUSED') {
       msg = 'Can\'t connect! Deepstream server unreachable on ' + _this._originalUrl;
     } else {
-      msg = error.toString();
+      try {
+        msg = JSON.stringify(error);
+      } catch (e) {
+        msg = error.toString();
+      }
     }
     _this._client._$onError(C.TOPIC.CONNECTION, C.EVENT.CONNECTION_ERROR, msg);
   }, 1);
