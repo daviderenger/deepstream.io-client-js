@@ -308,9 +308,6 @@ Connection.prototype._onOpen = function () {
  * @returns {void}
  */
 Connection.prototype._onError = function (error) {
-  // this is a temprary hack to get uws to recconect... must fix this better somehow
-  this._tryReconnect()
-  return
 
   clearInterval(this._heartbeatInterval)
   this._setState(C.CONNECTION_STATE.ERROR)
@@ -332,6 +329,8 @@ Connection.prototype._onError = function (error) {
     }
     this._client._$onError(C.TOPIC.CONNECTION, C.EVENT.CONNECTION_ERROR, msg)
   }, 1)
+  // this is a temprary hack to get uws to recconect... must fix this better somehow
+  this._tryReconnect()
 }
 
 /**
