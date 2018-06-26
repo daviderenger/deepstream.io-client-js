@@ -1,4 +1,6 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.deepstream = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.deepstream = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(_dereq_,module,exports){
+
+},{}],2:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -185,8 +187,6 @@ Emitter.prototype.eventNames = function(){
   return this._callbacks ? Object.keys(this._callbacks) : [];
 }
 
-},{}],2:[function(_dereq_,module,exports){
-
 },{}],3:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
@@ -358,6 +358,10 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -2109,7 +2113,7 @@ createDeepstream.MERGE_STRATEGIES = MS;
 
 module.exports = createDeepstream;
 
-},{"./constants/constants":11,"./constants/merge-strategies":12,"./default-options":13,"./event/event-handler":14,"./message/connection":15,"./presence/presence-handler":18,"./record/record-handler":22,"./rpc/rpc-handler":24,"./utils/ack-timeout-registry":27,"component-emitter2":1}],11:[function(_dereq_,module,exports){
+},{"./constants/constants":11,"./constants/merge-strategies":12,"./default-options":13,"./event/event-handler":14,"./message/connection":15,"./presence/presence-handler":18,"./record/record-handler":22,"./rpc/rpc-handler":24,"./utils/ack-timeout-registry":27,"component-emitter2":2}],11:[function(_dereq_,module,exports){
 'use strict';
 
 exports.CONNECTION_STATE = {};
@@ -2203,7 +2207,6 @@ exports.ACTIONS.RESPONSE = 'RES';
 exports.ACTIONS.REJECTION = 'REJ';
 exports.ACTIONS.PRESENCE_JOIN = 'PNJ';
 exports.ACTIONS.PRESENCE_LEAVE = 'PNL';
-exports.ACTIONS.QUERY = 'Q';
 exports.ACTIONS.WRITE_ACKNOWLEDGEMENT = 'WA';
 
 exports.CALL_STATE = {};
@@ -2624,7 +2627,7 @@ EventHandler.prototype._resubscribe = function () {
 
 module.exports = EventHandler;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/listener":28,"../utils/resubscribe-notifier":29,"component-emitter2":1}],15:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/listener":28,"../utils/resubscribe-notifier":29,"component-emitter2":2}],15:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2938,7 +2941,11 @@ Connection.prototype._onError = function (error) {
     if (error.code === 'ECONNRESET' || error.code === 'ECONNREFUSED') {
       msg = 'Can\'t connect! Deepstream server unreachable on ' + _this._originalUrl;
     } else {
-      msg = error.toString();
+      try {
+        msg = JSON.stringify(error);
+      } catch (e) {
+        msg = error.toString();
+      }
     }
     _this._client._$onError(C.TOPIC.CONNECTION, C.EVENT.CONNECTION_ERROR, msg);
   }, 1);
@@ -3171,7 +3178,7 @@ Connection.prototype._clearReconnect = function () {
 module.exports = Connection;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../constants/constants":11,"../utils/utils":31,"./message-builder":16,"./message-parser":17,"ws":2}],16:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"../utils/utils":31,"./message-builder":16,"./message-parser":17,"ws":1}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -3539,7 +3546,7 @@ PresenceHandler.prototype._resubscribe = function () {
 
 module.exports = PresenceHandler;
 
-},{"../constants/constants":11,"../utils/resubscribe-notifier":29,"component-emitter2":1}],19:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"../utils/resubscribe-notifier":29,"component-emitter2":2}],19:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable prefer-rest-params, prefer-spread */
 
@@ -3722,7 +3729,7 @@ AnonymousRecord.prototype._callMethodOnRecord = function (methodName) {
 
 module.exports = AnonymousRecord;
 
-},{"./record":23,"component-emitter2":1}],20:[function(_dereq_,module,exports){
+},{"./record":23,"component-emitter2":2}],20:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -4271,7 +4278,7 @@ List.prototype._getStructure = function () {
 
 module.exports = List;
 
-},{"../constants/constants":11,"./record":23,"component-emitter2":1}],22:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"./record":23,"component-emitter2":2}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -4436,7 +4443,11 @@ RecordHandler.prototype.unlisten = function (pattern) {
  */
 RecordHandler.prototype.snapshot = function (name, callback) {
   if (typeof name !== 'string' || name.length === 0) {
-    throw new Error('invalid argument name');
+    throw new Error('invalid argument: name');
+  }
+
+  if (typeof callback !== 'function') {
+    throw new Error('invalid argument: callback');
   }
 
   if (this._records[name] && this._records[name].isReady) {
@@ -4456,7 +4467,11 @@ RecordHandler.prototype.snapshot = function (name, callback) {
  */
 RecordHandler.prototype.has = function (name, callback) {
   if (typeof name !== 'string' || name.length === 0) {
-    throw new Error('invalid argument name');
+    throw new Error('invalid argument: name');
+  }
+
+  if (typeof callback !== 'function') {
+    throw new Error('invalid argument: callback');
   }
 
   if (this._records[name]) {
@@ -4485,35 +4500,42 @@ RecordHandler.prototype.setData = function (recordName, pathOrData, dataOrCallba
   var path = void 0;
   var data = void 0;
   var cb = void 0;
-  var valid = false;
 
   if (arguments.length === 4) {
     // setData(recordName, path, data, cb)
     path = pathOrData;
     data = dataOrCallback;
     cb = callback;
-    valid = true;
   } else if (arguments.length === 3) {
-    if (typeof pathOrData === 'string' && typeof dataOrCallback !== 'function') {
+    if (typeof dataOrCallback !== 'function') {
       // setData(recordName, path, data)
       path = pathOrData;
       data = dataOrCallback;
-      valid = true;
-    } else if ((typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) === 'object' && typeof dataOrCallback === 'function') {
+    } else {
       // setData(recordName, data, callback)
       path = null;
       data = pathOrData;
       cb = dataOrCallback;
-      valid = true;
     }
-  } else if (arguments.length === 2 && (typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) === 'object') {
+  } else if (arguments.length === 2) {
     // setData(recordName, data)
     data = pathOrData;
-    valid = true;
   }
 
-  if (!valid) {
-    throw new Error('incorrect arguments used: records must exist as objects at the root level');
+  if (typeof recordName !== 'string' || recordName.length === 0) {
+    throw new Error('invalid argument: recordName');
+  }
+
+  if (callback && typeof callback !== 'function') {
+    throw new Error('invalid argument: callback');
+  }
+
+  if (path && (typeof path !== 'string' || path.length === 0)) {
+    throw new Error('invalid argument: path');
+  }
+
+  if (!path && (data === null || (typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object')) {
+    throw new Error('invalid argument: data must be an object when no path is provided');
   }
 
   var record = this._records[recordName];
@@ -4679,7 +4701,7 @@ RecordHandler.prototype._removeRecord = function (recordName) {
 
 module.exports = RecordHandler;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/listener":28,"../utils/single-notifier":30,"./anonymous-record":19,"./list":21,"./record":23,"component-emitter2":1}],23:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/listener":28,"../utils/single-notifier":30,"./anonymous-record":19,"./list":21,"./record":23,"component-emitter2":2}],23:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable prefer-spread, prefer-rest-params */
 
@@ -5370,7 +5392,7 @@ Record.prototype._destroy = function () {
 
 module.exports = Record;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/resubscribe-notifier":29,"../utils/utils":31,"./json-path":20,"component-emitter2":1}],24:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/resubscribe-notifier":29,"../utils/utils":31,"./json-path":20,"component-emitter2":2}],24:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -5868,7 +5890,8 @@ var EventEmitter = _dereq_('component-emitter2');
 var AckTimeoutRegistry = function AckTimeoutRegistry(client, options) {
   this._options = options;
   this._client = client;
-  this._register = {};
+  this._register = new Map();
+  this._ackIdRegister = new Map();
   this._counter = 1;
   client.on('connectionStateChanged', this._onConnectionStateChanged.bind(this));
 };
@@ -5894,7 +5917,10 @@ AckTimeoutRegistry.prototype.add = function (timeout) {
   timeout.ackId = this._counter++;
   timeout.event = timeout.event || C.EVENT.ACK_TIMEOUT;
   timeout.__timeout = setTimeout(this._onTimeout.bind(this, timeout), timeoutDuration);
-  this._register[this._getUniqueName(timeout)] = timeout;
+  // this._register[this._getUniqueName(timeout)] = timeout
+  var uniqueName = this._getUniqueName(timeout);
+  this._register.set(uniqueName, timeout);
+  this._ackIdRegister.set(timeout.ackId, timeout);
   return timeout.ackId;
 };
 
@@ -5908,15 +5934,24 @@ AckTimeoutRegistry.prototype.add = function (timeout) {
  */
 AckTimeoutRegistry.prototype.remove = function (timeout) {
   if (timeout.ackId) {
-    for (var uniqueName in this._register) {
-      if (timeout.ackId === this._register[uniqueName].ackId) {
-        this.clear({
-          topic: this._register[uniqueName].topic,
-          action: this._register[uniqueName].action,
-          data: [this._register[uniqueName].name]
-        });
-      }
+    var entry = this._ackIdRegister.get(timeout.ackId);
+    if (entry) {
+      this.clear({
+        topic: entry.topic,
+        action: entry.action,
+        data: [entry.name]
+      });
     }
+
+    // for (const uniqueName in this._register) {
+    //  if (timeout.ackId === this._register[uniqueName].ackId) {
+    //    this.clear({
+    //      topic: this._register[uniqueName].topic,
+    //      action: this._register[uniqueName].action,
+    //      data: [this._register[uniqueName].name]
+    //    })
+    //  }
+    // }
   }
 
   if (this._register[this._getUniqueName(timeout)]) {
@@ -5944,11 +5979,17 @@ AckTimeoutRegistry.prototype.clear = function (message) {
     uniqueName = message.topic + message.action + message.data[0];
   }
 
-  if (this._register[uniqueName]) {
-    clearTimeout(this._register[uniqueName].__timeout);
-  }
+  // if (this._register[uniqueName]) {
+  //   clearTimeout(this._register[uniqueName].__timeout)
+  // }
 
-  delete this._register[uniqueName];
+  // delete this._register[uniqueName]
+  var entry = this._register.get(uniqueName);
+  if (entry) {
+    clearTimeout(entry.__timeout);
+    this._ackIdRegister.delete(uniqueName);
+    this._register.delete(entry.ackId);
+  }
 };
 
 /**
@@ -5960,7 +6001,10 @@ AckTimeoutRegistry.prototype.clear = function (message) {
  * @returns {void}
  */
 AckTimeoutRegistry.prototype._onTimeout = function (timeout) {
-  delete this._register[this._getUniqueName(timeout)];
+  // delete this._register[this._getUniqueName(timeout)]
+  var uniqueName = this._getUniqueName(timeout);
+  this._register.delete(uniqueName);
+  this._ackIdRegister.delete(timeout.ackId);
 
   if (timeout.callback) {
     delete timeout.__timeout;
@@ -5998,7 +6042,7 @@ AckTimeoutRegistry.prototype._onConnectionStateChanged = function (connectionSta
 
 module.exports = AckTimeoutRegistry;
 
-},{"../constants/constants":11,"component-emitter2":1}],28:[function(_dereq_,module,exports){
+},{"../constants/constants":11,"component-emitter2":2}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
