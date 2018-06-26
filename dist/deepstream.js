@@ -5892,7 +5892,8 @@ var EventEmitter = _dereq_('component-emitter2');
 var AckTimeoutRegistry = function AckTimeoutRegistry(client, options) {
   this._options = options;
   this._client = client;
-  this._register = {};
+  this._register = new Map();
+  this._ackIdRegister = new Map();
   this._counter = 1;
   client.on('connectionStateChanged', this._onConnectionStateChanged.bind(this));
 };
@@ -5918,7 +5919,10 @@ AckTimeoutRegistry.prototype.add = function (timeout) {
   timeout.ackId = this._counter++;
   timeout.event = timeout.event || C.EVENT.ACK_TIMEOUT;
   timeout.__timeout = setTimeout(this._onTimeout.bind(this, timeout), timeoutDuration);
-  this._register[this._getUniqueName(timeout)] = timeout;
+  // this._register[this._getUniqueName(timeout)] = timeout
+  var uniqueName = this._getUniqueName(timeout);
+  this._register.set(uniqueName, timeout);
+  this._ackIdRegister.set(timeout.ackId, timeout);
   return timeout.ackId;
 };
 
@@ -5932,15 +5936,24 @@ AckTimeoutRegistry.prototype.add = function (timeout) {
  */
 AckTimeoutRegistry.prototype.remove = function (timeout) {
   if (timeout.ackId) {
-    for (var uniqueName in this._register) {
-      if (timeout.ackId === this._register[uniqueName].ackId) {
-        this.clear({
-          topic: this._register[uniqueName].topic,
-          action: this._register[uniqueName].action,
-          data: [this._register[uniqueName].name]
-        });
-      }
+    var entry = this._ackIdRegister.get(timeout.ackId);
+    if (entry) {
+      this.clear({
+        topic: entry.topic,
+        action: entry.action,
+        data: [entry.name]
+      });
     }
+
+    // for (const uniqueName in this._register) {
+    //  if (timeout.ackId === this._register[uniqueName].ackId) {
+    //    this.clear({
+    //      topic: this._register[uniqueName].topic,
+    //      action: this._register[uniqueName].action,
+    //      data: [this._register[uniqueName].name]
+    //    })
+    //  }
+    // }
   }
 
   if (this._register[this._getUniqueName(timeout)]) {
@@ -5968,11 +5981,17 @@ AckTimeoutRegistry.prototype.clear = function (message) {
     uniqueName = message.topic + message.action + message.data[0];
   }
 
-  if (this._register[uniqueName]) {
-    clearTimeout(this._register[uniqueName].__timeout);
-  }
+  // if (this._register[uniqueName]) {
+  //   clearTimeout(this._register[uniqueName].__timeout)
+  // }
 
-  delete this._register[uniqueName];
+  // delete this._register[uniqueName]
+  var entry = this._register.get(uniqueName);
+  if (entry) {
+    clearTimeout(entry.__timeout);
+    this._ackIdRegister.delete(uniqueName);
+    this._register.delete(entry.ackId);
+  }
 };
 
 /**
@@ -5984,7 +6003,10 @@ AckTimeoutRegistry.prototype.clear = function (message) {
  * @returns {void}
  */
 AckTimeoutRegistry.prototype._onTimeout = function (timeout) {
-  delete this._register[this._getUniqueName(timeout)];
+  // delete this._register[this._getUniqueName(timeout)]
+  var uniqueName = this._getUniqueName(timeout);
+  this._register.delete(uniqueName);
+  this._ackIdRegister.delete(timeout.ackId);
 
   if (timeout.callback) {
     delete timeout.__timeout;
