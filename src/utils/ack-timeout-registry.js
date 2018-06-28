@@ -117,10 +117,10 @@ AckTimeoutRegistry.prototype.clear = function (message) {
 
   // delete this._register[uniqueName]
   const entry = this._register.get(uniqueName)
+  this._register.delete(uniqueName)
   if (entry) {
     clearTimeout(entry.__timeout)
-    this._ackIdRegister.delete(uniqueName)
-    this._register.delete(entry.ackId)
+    this._ackIdRegister.delete(entry.ackId)
   }
 }
 
