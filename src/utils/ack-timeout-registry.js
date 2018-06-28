@@ -86,7 +86,7 @@ AckTimeoutRegistry.prototype.remove = function (timeout) {
     // }
   }
 
-  if (this._register[this._getUniqueName(timeout)]) {
+  if (this._register.has(this._getUniqueName(timeout))) {
     this.clear({
       topic: timeout.topic,
       action: timeout.action,
